@@ -4,6 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "Vue3 源码 - V3.4.14",
   description: "Vue3 source",
+  base: 'vue3-source-analysis',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
