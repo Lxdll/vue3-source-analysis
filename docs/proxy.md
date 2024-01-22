@@ -46,7 +46,7 @@ export function reactive(target: object) {
 }
 ```
 ### createReactiveObject()
-::: tip
+::: info
 1. 首先判断 `target` 是否是一个对象类型的（即使用 typeof 判断 `target` 的类型是否是 object，如果不是的话在 DEV 环境给出对应的警告）<br>
 2. 判断当前 `target` 是否已经有对应的 proxy 了，即当前 `target` 已经是一个响应式对象了，如果有的话，直接返回<br>
 3. 使用 `Object.prototype.toString.call(target)` 拿到 targetType<br>
@@ -138,9 +138,24 @@ function createReactiveObject(
 #### get 拦截函数
 如果读取的是数组的下列方法，那么返回 Vue 框架重写的方法 <br>
 1. `includes`、`indexOf`、`lastIndexOf` <br>
-`TODO`: Vue 的自实现逻辑
+将 `target` `toRaw()` 之后，`track` 数组中的每一个元素，然后用数组原生的方法，结果如果是 `-1` / `false`，那么将所有入参 `toRaw()` 之后，再跑一次（因为入参可能是 reactive 的）
 2. `push`、`pop`、`shift`、`unshift`、`splice` <br>
 `TODO`: Vue 的自实现逻辑
 
 如果是读取的 hasOwnProperty 属性，也是返回 Vue 框架重写的方法
+
+如果读取的是 Symbol 的内置属性 或者 nonTrackableKeys，那么直接返回 Reflect.get(target, key, receiver) 的结果
+::: tip
+Symbol 的内置属性：TODO <br>
+nonTrackableKeys: `__proto__`、`__v_isRef`、`__isVue`
+:::
+
+如果是非只读的，要 track 当前 target 的 key <br>
+
+如果是 shallow类型的，那么直接返回 Reflect.get(target, key, receiver) 的结果 <br>
+
+如果结果是一个 ref 类型，除了通过数字下标读取数组（Array + integer key）,其他情况都自动解 ref，返回 ref.value <br>
+
+如果结果是一个对象，那么深层次的递归，如果是 readonly 只读的，那么深层次都变为 readonly，否则深层次 reactive
+
 ### collectionHandlers
